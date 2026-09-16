@@ -80,8 +80,11 @@ try:
                     session.flush()
                     for item in items:
                         session.add(DetalleVenta(venta_id=venta.id, **item))
+                        prod = session.get(Producto, item["producto_id"])
+                        if prod:
+                            prod.stock_actual = max(0, prod.stock_actual - item["cantidad"])
                     session.commit()
-                st.success("Venta guardada en PostgreSQL.")
+                st.success("Venta guardada e inventario actualizado en PostgreSQL.")
             except Exception:
                 offline_queue.enqueue_venta(cliente_id, empleado_id, items)
                 st.warning("Sin conexión: la venta se guardó localmente y se sincronizará luego.")

@@ -1,4 +1,5 @@
-"""Conexión a PostgreSQL usando SQLAlchemy."""
+"""Conexión a PostgreSQL usando SQLAlchemy con manejo robusto de sesiones."""
+from contextlib import contextmanager
 import os
 
 from dotenv import load_dotenv
@@ -15,13 +16,26 @@ DB_PASSWORD = os.getenv("DB_PASSWORD", "")
 
 DATABASE_URL = f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
-engine = create_engine(DATABASE_URL, pool_pre_ping=True)
+engine = create_engine(
+    DATABASE_URL,
+    pool_pre_ping=True,
+    pool_recycle=3600,
+    connect_args={"connect_timeout": 5},
+)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 
 
+@contextmanager
 def get_session():
-    """Devuelve una sesión de SQLAlchemy para usar con context manager."""
-    return SessionLocal()
+    """Generador de contexto seguro para sesiones de SQLAlchemy con rollback automático en error."""
+    session = SessionLocal()
+    try:
+        yield session
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        session.close()
 
 
 def is_db_available() -> bool:
@@ -32,3 +46,4 @@ def is_db_available() -> bool:
         return True
     except Exception:
         return False
+

@@ -20,6 +20,6 @@ start "" http://localhost:8501
 echo.
 echo Presiona Ctrl+C o cierra esta ventana para detener el servidor.
 echo.
-.venv\Scripts\python.exe -m streamlit run app.py --server.headless false
+.venv\Scripts\python.exe -m streamlit run app.py --server.headless false --server.address 0.0.0.0 --server.port 8501
 
 pause

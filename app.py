@@ -152,6 +152,75 @@ except Exception as e:
     st.error(f"No se pudo conectar a la base de datos: {e}")
     st.info("Revisa tu archivo .env y que PostgreSQL esté corriendo.")
 
+# --- Sección de Conocimiento: Glosario de Estadística Industrial & Manual por Estación ---
+st.divider()
+with st.expander("📖 Glosario de Estadística Industrial & Guía Técnica de Estaciones", expanded=False):
+    tab_glo, tab_est = st.tabs(["📚 Glosario de Estadística Industrial", "⚙️ Guía de Comandos por Estación"])
+    
+    with tab_glo:
+        st.markdown(
+            """
+            #### 📊 Vocabulario y Métricas Clave de Analítica Industrial & Retail
+            - **KPI (Key Performance Indicator):** Indicador cuantitativo de desempeño para evaluar el rendimiento operativo y comercial del negocio.
+            - **Stock de Seguridad (Safety Stock - $SS$):** Nivel de amortiguación de inventario para absorber variaciones imprevistas en la demanda o retrasos de proveedores.
+            - **Punto de Reorden (ROP - Reorder Point):** Umbral de inventario ($ROP = \text{Demanda Promedio} \times \text{Lead Time} + SS$) que dispara una orden de reposición antes de llegar al desabastecimiento.
+            - **Tasa de Desabastecimiento (Stockout Rate):** Porcentaje de transacciones o SKUs que no pudieron ser surtidos por falta de disponibilidad.
+            - **Rotación de Inventario (Inventory Turnover):** Veces que el inventario se renueva en un período determinado ($\frac{\text{Costo de Mercancías Vendidas}}{\text{Inventario Promedio}}$).
+            - **Margen de Contribución Unitario:** Ganancia directa generada por cada unidad vendida ($\text{Precio de Venta} - \text{Precio de Costo}$).
+            - **Clasificación ABC (Principio de Pareto 80/20):** Segmentación del catálogo donde los productos tipo **A** (~20% de los SKUs) concentran el ~80% de los ingresos.
+            - **ETL (Extract, Transform, Load):** Flujo de extracción de datos transaccionales, transformación estructurada (vía Pandas) y carga en dashboards analíticos.
+            """
+        )
+    
+    with tab_est:
+        st.markdown(
+            """
+            #### 🔩 Arquitectura y Comandos Ejecutados por Estación
+            
+            1. **🏠 Estación Principal (`app.py`):**
+               - *Función:* Balance temporalizado (Ventas Hoy, Ayer, Antier e Histórico), catálogo general y control de conectividad.
+               - *Comando SQL / ORM:*
+                 ```sql
+                 SELECT DATE(fecha), COUNT(id), SUM(total) FROM ventas GROUP BY DATE(fecha);
+                 ```
+            
+            2. **📊 Estación Panel de Control (`pages/0_📊_Panel_de_Control.py`):**
+               - *Función:* Semáforo de advertencias tintilantes en CSS, gráficas de dispersión temporal y Pareto de productos críticos con tooltips interactivos.
+               - *Comando SQL / ORM:*
+                 ```sql
+                 SELECT p.sku, p.nombre, p.stock_actual, p.stock_minimo, SUM(d.cantidad) AS vendidos
+                 FROM productos p JOIN detalle_ventas d ON d.producto_id = p.id
+                 GROUP BY p.id;
+                 ```
+            
+            3. **🗂️ Estación Administrar Datos (`pages/1_🗂️_Administrar_Datos.py`):**
+               - *Función:* CRUD bidireccional en lote (`st.data_editor`) y galería de imágenes por tamaño de visualización (Iconos, Grande, Extra grande).
+               - *Comando SQL / ORM:*
+                 ```python
+                 session.query(Producto).order_by(Producto.sku).all()
+                 session.delete(obj) / session.commit()
+                 ```
+            
+            4. **🧾 Estación Caja / Punto de Venta (`pages/2_🧾_Caja.py`):**
+               - *Función:* Carrito de cobro con deducción de stock atómica y cola de contingencia local en SQLite (`offline_queue.py`) ante cortes de red/luz.
+               - *Comando SQL / ORM:*
+                 ```sql
+                 BEGIN;
+                 INSERT INTO ventas (cliente_id, empleado_id, total) VALUES (...);
+                 INSERT INTO detalle_ventas (venta_id, producto_id, cantidad, precio_unitario) VALUES (...);
+                 UPDATE productos SET stock_actual = stock_actual - :cantidad WHERE id = :producto_id;
+                 COMMIT;
+                 ```
+            
+            5. **➕ Estación Agregar Datos (`pages/3_➕_Agregar_Datos.py`):**
+               - *Función:* Alta modular de registros individuales con soporte para subida de fotos locales (`uploads/`) o URLs externas.
+               - *Comando SQL / ORM:*
+                 ```sql
+                 INSERT INTO productos (sku, nombre, precio_costo, precio_venta, stock_actual, stock_minimo, imagen_url, categoria_id, proveedor_id) VALUES (...);
+                 ```
+            """
+        )
+
 # --- Pie de página: Estado de conexión y sincronización ---
 st.divider()
 db_ok = is_db_available()

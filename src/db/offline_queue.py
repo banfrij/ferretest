@@ -83,8 +83,7 @@ def sync_pending() -> tuple[int, int]:
         conn.close()
 
     ok, fallidas = 0, 0
-    session = SessionLocal()
-    try:
+    with SessionLocal() as session:
         for row_id, payload_json in pendientes:
             payload = json.loads(payload_json)
             try:
@@ -105,14 +104,15 @@ def sync_pending() -> tuple[int, int]:
                             precio_unitario=item["precio_unitario"],
                         )
                     )
+                    prod = session.get(Producto, item["producto_id"])
+                    if prod:
+                        prod.stock_actual = max(0, prod.stock_actual - item["cantidad"])
                 session.commit()
                 _mark_synced(row_id)
                 ok += 1
             except Exception:
                 session.rollback()
                 fallidas += 1
-    finally:
-        session.close()
 
     return ok, fallidas
 
