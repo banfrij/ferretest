@@ -1,0 +1,14 @@
+[theme]
+base = "dark"
+primaryColor = "#00D2FF"
+backgroundColor = "#011A24"
+secondaryBackgroundColor = "#032B3A"
+textColor = "#F1F5F9"
+
+[server]
+headless = true
+runOnSave = true
+
+# Configuración pensada para uso en tableta Android vía navegador
+[browser]
+gatherUsageStats = false
