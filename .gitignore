@@ -5,3 +5,5 @@ __pycache__/
 .streamlit/secrets.toml
 data/
 uploads/
+.neon
+node_modules/
